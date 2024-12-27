@@ -33,8 +33,6 @@ func TestCleanInput(t *testing.T) {
 			for i := range actual {
 				word := actual[i]
 				expectedWord := c.expected[i]
-				fmt.Printf("Word %d is %v \n", i, word)
-				fmt.Printf("Expected %d is %v \n", i, expectedWord)
 
 				if word != expectedWord {
 					t.Errorf("test failed")
@@ -43,4 +41,21 @@ func TestCleanInput(t *testing.T) {
 		})
 
 	}
+}
+
+func TestGetCommands(t *testing.T) {
+	cases := []string{"help", "exit"}
+
+	commands := getCommands()
+	for _, cmd := range cases {
+		testname := fmt.Sprintf("Testing existence of '%v' command", cmd)
+		t.Run(testname, func(t *testing.T) {
+			_, exists := commands[cmd]
+			if !exists {
+				t.Errorf("Command '%v' not found", cmd)
+			}
+		})
+
+	}
+
 }
