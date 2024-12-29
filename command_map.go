@@ -1,45 +1,40 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 )
 
-type location struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
-}
-
-type locationsResponse struct {
-	Count    int        `json:"count"`
-	Next     string     `json:"next"`
-	Previous *string    `json:"previous"`
-	Results  []location `json:"results"`
-}
-
-func commandMap() error {
-	//if next is available....we actually use that url
-	defaultUrl := "https://pokeapi.co/api/v2/location-area/"
-	res, err := http.Get(defaultUrl)
-
+func commandMap(config *Config) error {
+	locationsResponse, err := config.pokeapiClient.GetLocations(config.next)
 	if err != nil {
-		errorText := fmt.Errorf("error getting locations: %v", err)
-		fmt.Println(errorText)
-		return errorText
-	}
-	defer res.Body.Close()
-
-	var locations locationsResponse
-
-	decoder := json.NewDecoder(res.Body)
-	if err = decoder.Decode(&locations); err != nil {
-		errorText := fmt.Errorf("error decoding response body: %v", err)
-		fmt.Println(errorText)
-		return errorText
+		return fmt.Errorf("error getting locationsResponse: %v", err)
 	}
 
-	for _, location := range locations.Results {
+	config.next = &locationsResponse.Next
+	config.previous = locationsResponse.Previous
+
+	for _, location := range locationsResponse.Results {
+		fmt.Println(location.Name)
+	}
+
+	return nil
+}
+
+func commandMapB(config *Config) error {
+	if config.previous == nil {
+		fmt.Println("you're on page one")
+		return nil
+	}
+
+	locationsResponse, err := config.pokeapiClient.GetLocations(config.previous)
+	if err != nil {
+		return fmt.Errorf("error getting locationsResponse: %v", err)
+	}
+
+	config.next = &locationsResponse.Next
+	config.previous = locationsResponse.Previous
+
+	for _, location := range locationsResponse.Results {
 		fmt.Println(location.Name)
 	}
 
