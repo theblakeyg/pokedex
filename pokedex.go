@@ -6,10 +6,12 @@ import (
 	"os"
 	"strings"
 
-	pokeapi "github.com/theblakeyg/pokedex/internal"
+	pokeapi "github.com/theblakeyg/pokedex/internal/pokeapi"
+	"github.com/theblakeyg/pokedex/internal/pokecache"
 )
 
 type Config struct {
+	cache         pokecache.Cache
 	pokeapiClient pokeapi.Client
 	previous      *string
 	next          *string
