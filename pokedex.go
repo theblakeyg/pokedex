@@ -15,6 +15,7 @@ type Config struct {
 	pokeapiClient pokeapi.Client
 	previous      *string
 	next          *string
+	pokemon       map[string]pokeapi.PokemonResponse
 }
 
 func runPokedex(config *Config) {
@@ -25,9 +26,14 @@ func runPokedex(config *Config) {
 		scanner.Scan()
 		text := cleanInput(scanner.Text())
 		commandName := text[0]
+		var commandParam string
+		if len(text) > 1 {
+
+			commandParam = text[1]
+		}
 
 		if command, ok := getCommands()[commandName]; ok {
-			command.callback(config)
+			command.callback(config, commandParam)
 		} else {
 			fmt.Print("Unknown Command\n")
 		}
@@ -37,7 +43,7 @@ func runPokedex(config *Config) {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*Config) error
+	callback    func(*Config, string) error
 }
 
 func cleanInput(text string) []string {
@@ -69,6 +75,16 @@ func getCommands() map[string]cliCommand {
 			name:        "mapb",
 			description: "Display previous location names",
 			callback:    commandMapB,
+		},
+		"explore": {
+			name:        "explore",
+			description: "Display pokemon for a given location",
+			callback:    commandExplore,
+		},
+		"catch": {
+			name:        "catch",
+			description: "Try to catch a Pokemon",
+			callback:    commandCatch,
 		},
 	}
 }
