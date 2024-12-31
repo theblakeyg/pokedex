@@ -44,7 +44,7 @@ func TestCleanInput(t *testing.T) {
 }
 
 func TestGetCommands(t *testing.T) {
-	cases := []string{"help", "exit"}
+	cases := []string{"help", "exit", "map", "mapb", "explore", "catch"}
 
 	commands := getCommands()
 	for _, cmd := range cases {

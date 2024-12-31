@@ -15,9 +15,11 @@ func commandCatch(config *Config, param string) error {
 	fmt.Printf("Throwing a Pokeball at %v...\n", param)
 
 	experience := pokemonResponse.BaseExperience
+	fmt.Printf("Experience: %v\n", experience)
 	caught := rand.Intn(50) + experience
 
-	if caught > 75 {
+	if caught > 150 {
+		fmt.Printf("Caught roll: %v\n", caught)
 		fmt.Printf("%v escaped!\n", param)
 	} else {
 		fmt.Printf("%v was caught!\n", param)
