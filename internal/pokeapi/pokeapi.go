@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/theblakeyg/pokedex/internal/pokecache"
 )
 
 type Client struct {
 	client  http.Client
 	Timeout time.Duration
 	baseUrl string
+	cache   pokecache.Cache
 }
 
 func NewClient(timeout time.Duration) Client {
@@ -18,6 +21,7 @@ func NewClient(timeout time.Duration) Client {
 		client:  http.Client{},
 		Timeout: timeout,
 		baseUrl: "https://pokeapi.co/api/v2",
+		cache:   pokecache.NewCache(5 * time.Second),
 	}
 }
 
@@ -26,6 +30,19 @@ func (c *Client) GetLocations(pageURL *string) (locationsResponse, error) {
 	if pageURL != nil {
 		url = *pageURL
 	}
+
+	locations := locationsResponse{}
+
+	//check cache
+	data, exists := c.cache.Get(url)
+	if exists {
+		err := json.Unmarshal(data, &locations)
+		if err != nil {
+			return locationsResponse{}, fmt.Errorf("error getting data from cache: %v", err)
+		}
+		return locations, nil
+	}
+
 	//create Request
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -42,8 +59,6 @@ func (c *Client) GetLocations(pageURL *string) (locationsResponse, error) {
 	}
 	defer res.Body.Close()
 
-	var locations locationsResponse
-
 	decoder := json.NewDecoder(res.Body)
 	if err = decoder.Decode(&locations); err != nil {
 		errorText := fmt.Errorf("error decoding response body: %v", err)
@@ -56,6 +71,18 @@ func (c *Client) GetLocations(pageURL *string) (locationsResponse, error) {
 
 func (c *Client) GetPokemonByLocation(location string) (locationDetailsResponse, error) {
 	url := c.baseUrl + "/location-area/" + location
+
+	pokemon := locationDetailsResponse{}
+
+	//check cache
+	data, exists := c.cache.Get(url)
+	if exists {
+		err := json.Unmarshal(data, &pokemon)
+		if err != nil {
+			return locationDetailsResponse{}, fmt.Errorf("error getting data from cache: %v", err)
+		}
+		return pokemon, nil
+	}
 
 	//create Request
 	request, err := http.NewRequest("GET", url, nil)
@@ -73,8 +100,6 @@ func (c *Client) GetPokemonByLocation(location string) (locationDetailsResponse,
 	}
 	defer res.Body.Close()
 
-	var pokemon locationDetailsResponse
-
 	decoder := json.NewDecoder(res.Body)
 	if err = decoder.Decode(&pokemon); err != nil {
 		errorText := fmt.Errorf("error decoding response body: %v", err)
@@ -87,6 +112,18 @@ func (c *Client) GetPokemonByLocation(location string) (locationDetailsResponse,
 
 func (c *Client) GetPokemon(pokemon string) (PokemonResponse, error) {
 	url := c.baseUrl + "/pokemon/" + pokemon
+
+	pokemonDetails := PokemonResponse{}
+
+	//check cache
+	data, exists := c.cache.Get(url)
+	if exists {
+		err := json.Unmarshal(data, &pokemonDetails)
+		if err != nil {
+			return PokemonResponse{}, fmt.Errorf("error getting data from cache: %v", err)
+		}
+		return pokemonDetails, nil
+	}
 
 	//create Request
 	request, err := http.NewRequest("GET", url, nil)
@@ -103,8 +140,6 @@ func (c *Client) GetPokemon(pokemon string) (PokemonResponse, error) {
 		return PokemonResponse{}, errorText
 	}
 	defer res.Body.Close()
-
-	var pokemonDetails PokemonResponse
 
 	decoder := json.NewDecoder(res.Body)
 	if err = decoder.Decode(&pokemonDetails); err != nil {
